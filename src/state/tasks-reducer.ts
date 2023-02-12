@@ -105,13 +105,14 @@ export const tasksReducer = (state: TasksStateType = initialState, action: Actio
             return ({...state});
         }
         case 'CHANGE-TASK-TITLE': {
-            let todolistTasks = state[action.todolistId];
-            // найдём нужную таску:
-            let newTasksArray = todolistTasks
-                .map(t => t.id === action.taskId ? {...t, title: action.title} : t);
-
-            state[action.todolistId] = newTasksArray;
-            return ({...state});
+            // let todolistTasks = state[action.todolistId];
+            // // найдём нужную таску:
+            // let newTasksArray = todolistTasks
+            //     .map(t => t.id === action.taskId ? {...t, title: action.title} : t);
+            //
+            // state[action.todolistId] = newTasksArray;
+            // return ({...state});
+            return {...state,[action.todolistId]:state[action.todolistId].map(el=>el.id===action.taskId?{...el,title:action.title}:el)}
         }
         case 'ADD-TODOLIST': {
             return {
@@ -193,3 +194,23 @@ export const updateTaskStatusTC=(todolistId:string,taskId:string,status:TaskStat
 
 }
 
+export const changeTaskTitleTC=(todolistId:string,taskId:string,title:string)=>(dispatch:Dispatch,getState:()=>AppRootStateType)=>{
+    const changedTask=getState().tasks[todolistId].find(el=>el.id===taskId)
+
+    if(changedTask){
+        const model:UpdateTaskModelType={
+            title:title,
+            status:changedTask.status,
+            priority:changedTask.priority,
+            startDate:changedTask.startDate,
+            deadline:changedTask.deadline,
+            description:changedTask.description
+        }
+        todolistsAPI.updateTask(todolistId,taskId,model)
+            .then((res)=>{
+                dispatch(changeTaskTitleAC(taskId,res.data.data.item.title,todolistId))
+            })
+    }
+
+
+}
